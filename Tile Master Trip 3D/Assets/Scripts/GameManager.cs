@@ -3,25 +3,28 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private Transform tileParent;
     [SerializeField] private GameUI gameUI;
     [SerializeField] private TilesManager tilesManager;
+    public List<MapDataSO> mapDatas = new List<MapDataSO>();
     public List<GameObject> containerTile = new List<GameObject>();
     public List<GameObject> containerPositions = new List<GameObject>();
     public Dictionary<string, int> tableCountType = new Dictionary<string, int>();
-    private float totalTimePlay = 180f; // se duoc get tu MapData
     private float currentTime;
+    private int currentLevel;
+    private MapDataSO currentMapData;
     private GameObject currentTile;
     private bool isRemoveMatching;
     private bool isUpdatePosTile;
 
     async void Awake()
     {
-        currentTime = totalTimePlay;
-        await tilesManager.Initialized();
+        Initialized();
+
+        await tilesManager.Initialized(mapDatas[currentLevel - 1].tileDatas);
 
         Debug.Log("tileManager child count: " + tilesManager.transform.childCount);
 
@@ -33,15 +36,26 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void Initialized()
+    {
+        currentLevel = SaveSystem.LoadLevel();
+
+        currentMapData = mapDatas[currentLevel - 1];
+        currentTime = currentMapData.timePlay;
+        Debug.Log(currentTile);
+    }
+
     private void OnTileMoveCompleted(Tile tile)
     {
+        Debug.Log("Move Completed");
         if (!isRemoveMatching)
         {
             AddToContainer(tile.gameObject);
         }
         else
         {
-            StartCoroutine(WaitForRemoving(tile));
+            StartCoroutine(WaitForRemoving());
+            AddToContainer(tile.gameObject);
         }
 
         currentTile = tile.gameObject;
@@ -59,17 +73,11 @@ public class GameManager : MonoBehaviour
         {
             gameUI.SetStatusMenuLose(true);
         }
-
-        if (tilesManager.transform.childCount == 0)
-        {
-            gameUI.SetStatusMenuWin(true);
-        }
     }
 
-    IEnumerator WaitForRemoving(Tile tile)
+    IEnumerator WaitForRemoving()
     {
         yield return new WaitUntil(() => isRemoveMatching = true);
-        AddToContainer(tile.gameObject);
     }
 
     private void OnTileClicked(Tile tile)
@@ -93,12 +101,12 @@ public class GameManager : MonoBehaviour
             UpdatePosTiles(0, containerTile.Count - 1);
             tableCountType[currentTile.tag]--;
         }
-        
+
         if (containerTile.Count > 0)
         {
             currentTile = containerTile[0];
         }
-        else 
+        else
         {
             currentTile = null;
         }
@@ -150,6 +158,13 @@ public class GameManager : MonoBehaviour
 
         UpdatePosTiles(0, containerTile.Count - 1);
         isRemoveMatching = false;
+
+        if (tilesManager.CheckWin())
+        {
+            Debug.Log("alll");
+            // SaveSystem.SaveLevel(++currentLevel);
+            gameUI.SetStatusMenuWin(true);
+        }
     }
 
     private IEnumerator WaitForUpdatePosTile(List<GameObject> listDestroy)
@@ -158,6 +173,7 @@ public class GameManager : MonoBehaviour
         containerTile.RemoveAll(r => r.tag == tag);
         foreach (GameObject obj in listDestroy)
         {
+            obj.transform.DOKill();
             Destroy(obj);
         }
     }
@@ -196,4 +212,9 @@ public class GameManager : MonoBehaviour
         gameUI.SetTimeCountDown(minutes, seconds);
 
     }
+
+    // public void ReLoadScene()
+    // {
+    //     SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    // }
 }

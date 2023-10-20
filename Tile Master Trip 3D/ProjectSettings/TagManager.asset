@@ -4,9 +4,12 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Red
-  - Blue
-  - Green
+  - apple
+  - banana
+  - blueberry
+  - coconut
+  - orange
+  - watermelon
   layers:
   - Default
   - TransparentFX

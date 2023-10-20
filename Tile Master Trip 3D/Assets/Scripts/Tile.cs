@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using System;
+using UnityEngine.UI;
 
 public class Tile : MonoBehaviour
 {
-    public float duration = 0.01f;
+    [SerializeField] public Image image;
     private Rigidbody rgb;
     private BoxCollider boxCollider;
     private Vector3 upScale, downScale, baseScale;
@@ -21,6 +22,11 @@ public class Tile : MonoBehaviour
 
         rgb = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
+    }
+
+    public void Initialized(Sprite sprite)
+    {
+        image.sprite = sprite;
     }
 
 
@@ -55,7 +61,6 @@ public class Tile : MonoBehaviour
             {
                 transform.rotation = Quaternion.identity;
                 OnMoveCompleted?.Invoke(this);
-                Debug.Log("Hoàn thành di chuyển");
             });
     }
 

@@ -3894,7 +3894,7 @@ GameObject:
   - component: {fileID: 1483205142}
   - component: {fileID: 1483205141}
   m_Layer: 5
-  m_Name: txt_Score
+  m_Name: txt_Time
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5797,7 +5797,7 @@ GameObject:
   - component: {fileID: 2089132381}
   - component: {fileID: 2089132380}
   m_Layer: 5
-  m_Name: txt_Score
+  m_Name: txt_Level
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5950,9 +5950,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f77a70ee571df6147ba1de3774ce58bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tileParent: {fileID: 928850648}
   gameUI: {fileID: 478143654}
   tilesManager: {fileID: 928850649}
+  mapDatas:
+  - {fileID: 11400000, guid: 1f99a370f37d111418c9935914cabe85, type: 2}
+  - {fileID: 11400000, guid: e2c3cda02a336b044ba98a47cc9222e1, type: 2}
   containerTile: []
   containerPositions:
   - {fileID: 1536347981}
