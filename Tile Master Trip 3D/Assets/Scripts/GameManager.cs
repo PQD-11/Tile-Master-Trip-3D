@@ -8,86 +8,181 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private Transform tileParent;
     [SerializeField] private GameUI gameUI;
-    [SerializeField] private TilesManager tilesManager; 
-    public List<GameObject> listTile = new List<GameObject>();
-    public List<GameObject> listPosContainer = new List<GameObject>();
-    public Dictionary<string, int> countColor = new Dictionary<string, int>();
-    private string tagObj;
-    private float totalTimePlay = 10f; // se duoc get tu MapData
+    [SerializeField] private TilesManager tilesManager;
+    public List<GameObject> containerTile = new List<GameObject>();
+    public List<GameObject> containerPositions = new List<GameObject>();
+    public Dictionary<string, int> tableCountType = new Dictionary<string, int>();
+    private float totalTimePlay = 180f; // se duoc get tu MapData
     private float currentTime;
+    private GameObject currentTile;
+    private bool isRemoveMatching;
+    private bool isUpdatePosTile;
 
-    private void Awake()
+    async void Awake()
     {
         currentTime = totalTimePlay;
-        tilesManager.Initialized();
+        await tilesManager.Initialized();
+
+        Debug.Log("tileManager child count: " + tilesManager.transform.childCount);
+
+        foreach (Transform child in tilesManager.transform)
+        {
+            Tile tile = child.GetComponent<Tile>();
+            tile.OnClick += OnTileClicked;
+            tile.OnMoveCompleted += OnTileMoveCompleted;
+        }
     }
-    public void AddToContainer(GameObject gameObject)
+
+    private void OnTileMoveCompleted(Tile tile)
     {
-        if (listTile.Count > 0)
+        if (!isRemoveMatching)
         {
-            listTile.Insert(0, gameObject);
-            UpdatePosTiles(1, listTile.Count - 1);
+            AddToContainer(tile.gameObject);
         }
         else
         {
-            listTile.Insert(0, gameObject);
-            Debug.Log(listTile.Count);
+            StartCoroutine(WaitForRemoving(tile));
         }
 
-        // check 
-        tagObj = gameObject.tag;
-        if (countColor.ContainsKey(tagObj))
+        currentTile = tile.gameObject;
+    }
+
+    private void CheckMatching(GameObject gameObject)
+    {
+        if (tableCountType[gameObject.tag] == 3)
         {
-            countColor[tagObj]++;
-        }
-        else
-        {
-            countColor.Add(tagObj, 1);
+            isRemoveMatching = true;
+            RemoveTileMatching(gameObject.tag);
         }
 
-        if (countColor[tagObj] == 3)
-        {
-            StartCoroutine(RemoveTileMatching(tagObj));
-        }
-        else if (listTile.Count == 7)
+        if (containerTile.Count == 7)
         {
             gameUI.SetStatusMenuLose(true);
         }
 
-        int childs = tileParent.childCount;
-        if (childs == 0)
+        if (tilesManager.transform.childCount == 0)
         {
             gameUI.SetStatusMenuWin(true);
         }
     }
 
-    IEnumerator RemoveTileMatching(string tagObj)
+    IEnumerator WaitForRemoving(Tile tile)
     {
-        yield return new WaitForSecondsRealtime(0.5f);
+        yield return new WaitUntil(() => isRemoveMatching = true);
+        AddToContainer(tile.gameObject);
+    }
 
-        for (int i = 0; i < listTile.Count; i++)
+    private void OnTileClicked(Tile tile)
+    {
+        if (containerTile.Count > 0)
         {
-            if (listTile[i].tag == tagObj)
+            UpdatePosTilesBack();
+        }
+        tile.MoveToContainer(containerPositions[0].transform);
+    }
+
+    public void OnButtonBack()
+    {
+        if (currentTile != null)
+        {
+            Tile tile = currentTile.GetComponent<Tile>();
+            tile.MoveToBack();
+            containerTile.Remove(currentTile);
+            tilesManager.AddTileBackTileManager(currentTile);
+
+            UpdatePosTiles(0, containerTile.Count - 1);
+            tableCountType[currentTile.tag]--;
+        }
+        
+        if (containerTile.Count > 0)
+        {
+            currentTile = containerTile[0];
+        }
+        else 
+        {
+            currentTile = null;
+        }
+    }
+
+    public void AddToContainer(GameObject gameObject)
+    {
+        containerTile.Insert(0, gameObject);
+        tilesManager.RemoveTileFromTileManager(gameObject);
+
+        if (tableCountType.ContainsKey(gameObject.tag))
+        {
+            tableCountType[gameObject.tag]++;
+        }
+        else
+        {
+            tableCountType.Add(gameObject.tag, 1);
+        }
+
+        CheckMatching(gameObject);
+
+    }
+
+    private void RemoveTileMatching(string tag)
+    {
+        List<GameObject> listDestroy = new List<GameObject>();
+        for (int i = 0; i < containerTile.Count; i++)
+        {
+            if (containerTile[i].tag == tag)
             {
-                Destroy(listTile[i].gameObject);
+                listDestroy.Add(containerTile[i]);
+                tableCountType[tag]--;
             }
         }
-        listTile.RemoveAll(r => r.tag == tagObj);
-        countColor[tagObj] = 0;
-        UpdatePosTiles(0, listTile.Count - 1);
+
+        if (!isUpdatePosTile)
+        {
+            containerTile.RemoveAll(i => i.tag == tag);
+            foreach (GameObject obj in listDestroy)
+            {
+                obj.transform.DOKill();
+                Destroy(obj);
+            }
+        }
+        else
+        {
+            StartCoroutine(WaitForUpdatePosTile(listDestroy));
+        }
+
+        UpdatePosTiles(0, containerTile.Count - 1);
+        isRemoveMatching = false;
+    }
+
+    private IEnumerator WaitForUpdatePosTile(List<GameObject> listDestroy)
+    {
+        yield return new WaitUntil(() => isUpdatePosTile = true);
+        containerTile.RemoveAll(r => r.tag == tag);
+        foreach (GameObject obj in listDestroy)
+        {
+            Destroy(obj);
+        }
     }
 
     private void UpdatePosTiles(int first, int end)
     {
         for (int i = end; i >= first; i--)
         {
-            listTile[i].transform.DOMove(listPosContainer[i].transform.position, 0.1f);
+            containerTile[i].transform.DOMove(containerPositions[i].transform.position, 0.1f);
         }
+    }
+    private void UpdatePosTilesBack()
+    {
+        isUpdatePosTile = true;
+        for (int i = containerTile.Count - 1; i >= 0; i--)
+        {
+            // if (containerTile[i] == null) break;
+            containerTile[i].transform.DOMove(containerPositions[i + 1].transform.position, 0.1f);
+        }
+        isUpdatePosTile = false;
     }
 
     private void Update()
     {
-
+        //CountDownTimer
         currentTime -= Time.deltaTime;
 
         if (currentTime < 0)
