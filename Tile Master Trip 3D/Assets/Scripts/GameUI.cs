@@ -35,11 +35,13 @@ public class GameUI : MonoBehaviour
 
     public void SetStatusMenuWin(bool status)
     {
+        AudioManager.Instance.PlaySFX("LevelComplete");
         menuWin.SetActive(status);
     }
 
     public void SetStatusMenuLose(bool status)
     {
+        AudioManager.Instance.PlaySFX("GameOver");
         menuLose.SetActive(status);
     }
 

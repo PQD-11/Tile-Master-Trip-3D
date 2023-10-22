@@ -48,6 +48,7 @@ public class Tile : MonoBehaviour
     private void OnMouseUp()
     {
         OnClick?.Invoke(this);
+        AudioManager.Instance.PlaySFX("ClickTile");
 
         startPos = transform.position;
         startRotation = transform.rotation;

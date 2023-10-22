@@ -20,16 +20,22 @@ public class HomeManager : MonoBehaviour
 
     public void OnButtonSettingClicked()
     {
+        AudioManager.Instance.PlaySFX("PushButton");
+
         homeUI.SetStatusMenuSetting(true);
     }
 
     public void OnButtonCloseMenuSettingUI()
     {
+        AudioManager.Instance.PlaySFX("PushButton");
+
         homeUI.SetStatusMenuSetting(false);
     }
 
     public void OnButtonPlay()
     {
+        AudioManager.Instance.PlaySFX("PushButton");
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 }

@@ -41,6 +41,8 @@ public class GameManager : MonoBehaviour
 
     private void Initialized()
     {
+        AudioManager.Instance.PlayMusic("Theme");
+
         cointInGame = 0;
         currentLevel = SaveSystem.LoadLevel();
 
@@ -74,6 +76,7 @@ public class GameManager : MonoBehaviour
             isRemoveMatching = true;
             RemoveTileMatching(gameObject.tag);
             OnTileMatching?.Invoke(cointInGame);
+            AudioManager.Instance.PlaySFX("TileMatching");
             // gameUI.SetCoinInGame(cointInGame);
         }
 
@@ -100,6 +103,8 @@ public class GameManager : MonoBehaviour
     public void OnButtonBackTile()
     {
         if (isPaused) { return; }
+
+        AudioManager.Instance.PlaySFX("PushButton");
 
         if (currentTile != null)
         {
@@ -232,6 +237,8 @@ public class GameManager : MonoBehaviour
 
     public void OnPauseButtonClicked()
     {
+        AudioManager.Instance.PlaySFX("PushButton");
+
         isPaused = !isPaused;
         gameUI.SetStatusMenuPause(isPaused);
         Time.timeScale = Time.timeScale == 1 ? 0 : 1;
@@ -240,11 +247,15 @@ public class GameManager : MonoBehaviour
 
     public void OnButtonBackHomeClicked()
     {
+        AudioManager.Instance.PlaySFX("PushButton");
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
     }
 
     public void ReLoadScene()
     {
+        AudioManager.Instance.PlaySFX("PushButton");
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
