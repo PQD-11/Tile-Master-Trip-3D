@@ -15,10 +15,13 @@ public class GameManager : MonoBehaviour
     public Dictionary<string, int> tableCountType = new Dictionary<string, int>();
     private float currentTime;
     private int currentLevel;
+    private int cointInGame;
     private MapDataSO currentMapData;
     private GameObject currentTile;
     private bool isRemoveMatching;
     private bool isUpdatePosTile;
+    private bool isPaused;
+    public event Action<int> OnTileMatching;
 
     async void Awake()
     {
@@ -38,11 +41,14 @@ public class GameManager : MonoBehaviour
 
     private void Initialized()
     {
+        cointInGame = 0;
         currentLevel = SaveSystem.LoadLevel();
 
         currentMapData = mapDatas[currentLevel - 1];
         currentTime = currentMapData.timePlay;
-        Debug.Log(currentTile);
+
+        gameUI.SetTextLevel(currentLevel);
+        gameUI.SetCoinInGame(cointInGame);
     }
 
     private void OnTileMoveCompleted(Tile tile)
@@ -67,6 +73,8 @@ public class GameManager : MonoBehaviour
         {
             isRemoveMatching = true;
             RemoveTileMatching(gameObject.tag);
+            OnTileMatching?.Invoke(cointInGame);
+            // gameUI.SetCoinInGame(cointInGame);
         }
 
         if (containerTile.Count == 7)
@@ -89,8 +97,10 @@ public class GameManager : MonoBehaviour
         tile.MoveToContainer(containerPositions[0].transform);
     }
 
-    public void OnButtonBack()
+    public void OnButtonBackTile()
     {
+        if (isPaused) { return; }
+
         if (currentTile != null)
         {
             Tile tile = currentTile.GetComponent<Tile>();
@@ -158,11 +168,15 @@ public class GameManager : MonoBehaviour
 
         UpdatePosTiles(0, containerTile.Count - 1);
         isRemoveMatching = false;
+        cointInGame += 10;
 
         if (tilesManager.CheckWin())
         {
-            Debug.Log("alll");
-            // SaveSystem.SaveLevel(++currentLevel);
+            int totalCoin = SaveSystem.LoadCoin() + cointInGame;
+            SaveSystem.SaveCoin(totalCoin);
+            gameUI.SetCoinInMenuWin(cointInGame);
+            currentLevel = (currentLevel % mapDatas.Count) + 1;
+            SaveSystem.SaveLevel(currentLevel);
             gameUI.SetStatusMenuWin(true);
         }
     }
@@ -199,22 +213,38 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         //CountDownTimer
-        currentTime -= Time.deltaTime;
-
-        if (currentTime < 0)
+        if (!isPaused)
         {
-            currentTime = 0;
-            gameUI.SetStatusMenuLose(true);
-        }
+            currentTime -= Time.deltaTime;
 
-        int minutes = Mathf.FloorToInt(currentTime / 60);
-        int seconds = Mathf.FloorToInt(currentTime % 60);
-        gameUI.SetTimeCountDown(minutes, seconds);
+            if (currentTime < 0)
+            {
+                currentTime = 0;
+                gameUI.SetStatusMenuLose(true);
+            }
+
+            int minutes = Mathf.FloorToInt(currentTime / 60);
+            int seconds = Mathf.FloorToInt(currentTime % 60);
+            gameUI.SetTimeCountDown(minutes, seconds);
+        }
 
     }
 
-    // public void ReLoadScene()
-    // {
-    //     SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    // }
+    public void OnPauseButtonClicked()
+    {
+        isPaused = !isPaused;
+        gameUI.SetStatusMenuPause(isPaused);
+        Time.timeScale = Time.timeScale == 1 ? 0 : 1;
+        tilesManager.SetEnableTilesInStore(isPaused);
+    }
+
+    public void OnButtonBackHomeClicked()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+    }
+
+    public void ReLoadScene()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
 }

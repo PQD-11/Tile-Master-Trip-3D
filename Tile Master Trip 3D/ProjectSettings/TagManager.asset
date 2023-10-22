@@ -10,6 +10,7 @@ TagManager:
   - coconut
   - orange
   - watermelon
+  - wall
   layers:
   - Default
   - TransparentFX

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class Tile : MonoBehaviour
 {
     [SerializeField] public Image image;
-    private Rigidbody rgb;
+    private Rigidbody rb;
     private BoxCollider boxCollider;
     private Vector3 upScale, downScale, baseScale;
     private Vector3 startPos;
@@ -20,7 +20,7 @@ public class Tile : MonoBehaviour
     {
         baseScale = transform.localScale;
 
-        rgb = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
     }
 
@@ -29,10 +29,16 @@ public class Tile : MonoBehaviour
         image.sprite = sprite;
     }
 
-
+    private void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.CompareTag("wall"))
+        {
+            rb.velocity = -rb.velocity * 2;
+        }
+    }
     private void OnMouseDown()
     {
-        rgb.useGravity = false;
+        rb.useGravity = false;
         boxCollider.enabled = false;
 
         upScale = transform.localScale * 1.2f;
@@ -72,7 +78,7 @@ public class Tile : MonoBehaviour
         .OnComplete(() =>
         {
             transform.rotation = startRotation;
-            rgb.useGravity = true;
+            rb.useGravity = true;
             boxCollider.enabled = true;
         });
     }

@@ -46,4 +46,12 @@ public class TilesManager : MonoBehaviour
     {
         return TilesStore.Count == 0;
     }
+
+    public void SetEnableTilesInStore(bool status)
+    {
+        foreach (GameObject gameObject in TilesStore)
+        {
+            gameObject.SetActive(!status);
+        }
+    }
 }
