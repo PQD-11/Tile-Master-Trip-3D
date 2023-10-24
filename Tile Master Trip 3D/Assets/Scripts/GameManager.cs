@@ -218,7 +218,7 @@ public class GameManager : MonoBehaviour
 
     public void OnButtonBackTile()
     {
-        if (isPaused) { return; }
+        if (isPaused || isClosed) { return; }
 
         AudioManager.Instance.PlaySFX("PushButton");
 
@@ -245,6 +245,8 @@ public class GameManager : MonoBehaviour
 
     public void OnButtonHint()
     {
+        if (isPaused || isClosed) { return; }
+
         var maxKeyValue = tableCountType.Aggregate((x, y) => x.Value > y.Value ? x : y);
         string keyOfMaxValue = maxKeyValue.Key;
         int maxValue = maxKeyValue.Value;
