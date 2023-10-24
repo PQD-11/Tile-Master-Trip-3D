@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     private bool isRemoveMatching;
     private bool isUpdatePosTile;
     private bool isPaused;
+    private bool isClosed;
     public event Action<int> OnTileMatching;
 
     async void Awake()
@@ -111,6 +112,8 @@ public class GameManager : MonoBehaviour
         if (containerTile.Count == 7)
         {
             gameUI.SetStatusMenuLose(true);
+            isClosed = true;
+            tilesManager.SetEnableTilesInStore(isClosed);
         }
     }
 
@@ -192,7 +195,11 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         //CountDownTimer
-        if (!isPaused)
+        if (isPaused || isClosed)
+        {
+            return;
+        }
+        else
         {
             currentTime -= Time.deltaTime;
 
@@ -243,6 +250,17 @@ public class GameManager : MonoBehaviour
         int maxValue = maxKeyValue.Value;
 
         tilesManager.FindHint(keyOfMaxValue, 3 - maxValue);
+    }
+
+    public void OnButtonPlayOnLose()
+    {
+        OnButtonBackTile();
+        OnButtonBackTile();
+        OnButtonBackTile();
+
+        gameUI.SetStatusMenuLose(false);
+        isClosed = false;
+        tilesManager.SetEnableTilesInStore(isClosed);
     }
 
     public void OnPauseButtonClicked()
