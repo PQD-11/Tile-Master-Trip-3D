@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -52,6 +53,21 @@ public class TilesManager : MonoBehaviour
         foreach (GameObject gameObject in TilesStore)
         {
             gameObject.SetActive(!status);
+        }
+    }
+
+    public void FindHint(string keyOfMaxValue, int count)
+    {
+        foreach (GameObject gameObject in TilesStore)
+        {
+            if (count <= 0) { return; }
+
+            if (gameObject.tag == keyOfMaxValue)
+            {
+                Tile tile = gameObject.GetComponent<Tile>();
+                tile.TileHintHelper();
+                count--;
+            }
         }
     }
 }

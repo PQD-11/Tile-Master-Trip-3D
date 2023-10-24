@@ -4,6 +4,7 @@ using UnityEngine;
 using DG.Tweening;
 using System;
 using UnityEngine.UI;
+using System.Security.Cryptography;
 
 public class Tile : MonoBehaviour
 {
@@ -52,6 +53,12 @@ public class Tile : MonoBehaviour
 
         startPos = transform.position;
         startRotation = transform.rotation;
+    }
+
+    public void TileHintHelper()
+    {
+        OnMouseDown();
+        OnMouseUp();
     }
 
     public void MoveToContainer(Transform destination)

@@ -73,4 +73,14 @@ public class AudioManager : MonoBehaviour
     {
         sfxSource.volume = volume;
     }
+
+    public bool UpdateStatusMusic()
+    {
+        return musicSource.mute;
+    }
+
+    public bool UpdateStatusSFX()
+    {
+        return sfxSource.mute;
+    }
 }

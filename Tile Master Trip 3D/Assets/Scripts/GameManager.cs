@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
@@ -53,6 +54,15 @@ public class GameManager : MonoBehaviour
         gameUI.SetCoinInGame(cointInGame);
     }
 
+    private void OnTileClicked(Tile tile)
+    {
+        if (containerTile.Count > 0)
+        {
+            UpdatePosTilesBack();
+        }
+        tile.MoveToContainer(containerPositions[0].transform);
+    }
+
     private void OnTileMoveCompleted(Tile tile)
     {
         Debug.Log("Move Completed");
@@ -67,64 +77,6 @@ public class GameManager : MonoBehaviour
         }
 
         currentTile = tile.gameObject;
-    }
-
-    private void CheckMatching(GameObject gameObject)
-    {
-        if (tableCountType[gameObject.tag] == 3)
-        {
-            isRemoveMatching = true;
-            RemoveTileMatching(gameObject.tag);
-            OnTileMatching?.Invoke(cointInGame);
-            AudioManager.Instance.PlaySFX("TileMatching");
-            // gameUI.SetCoinInGame(cointInGame);
-        }
-
-        if (containerTile.Count == 7)
-        {
-            gameUI.SetStatusMenuLose(true);
-        }
-    }
-
-    IEnumerator WaitForRemoving()
-    {
-        yield return new WaitUntil(() => isRemoveMatching = true);
-    }
-
-    private void OnTileClicked(Tile tile)
-    {
-        if (containerTile.Count > 0)
-        {
-            UpdatePosTilesBack();
-        }
-        tile.MoveToContainer(containerPositions[0].transform);
-    }
-
-    public void OnButtonBackTile()
-    {
-        if (isPaused) { return; }
-
-        AudioManager.Instance.PlaySFX("PushButton");
-
-        if (currentTile != null)
-        {
-            Tile tile = currentTile.GetComponent<Tile>();
-            tile.MoveToBack();
-            containerTile.Remove(currentTile);
-            tilesManager.AddTileBackTileManager(currentTile);
-
-            UpdatePosTiles(0, containerTile.Count - 1);
-            tableCountType[currentTile.tag]--;
-        }
-
-        if (containerTile.Count > 0)
-        {
-            currentTile = containerTile[0];
-        }
-        else
-        {
-            currentTile = null;
-        }
     }
 
     public void AddToContainer(GameObject gameObject)
@@ -143,6 +95,23 @@ public class GameManager : MonoBehaviour
 
         CheckMatching(gameObject);
 
+    }
+
+    private void CheckMatching(GameObject gameObject)
+    {
+        if (tableCountType[gameObject.tag] == 3)
+        {
+            isRemoveMatching = true;
+            RemoveTileMatching(gameObject.tag);
+            OnTileMatching?.Invoke(cointInGame);
+            AudioManager.Instance.PlaySFX("TileMatching");
+            // gameUI.SetCoinInGame(cointInGame);
+        }
+
+        if (containerTile.Count == 7)
+        {
+            gameUI.SetStatusMenuLose(true);
+        }
     }
 
     private void RemoveTileMatching(string tag)
@@ -184,6 +153,11 @@ public class GameManager : MonoBehaviour
             SaveSystem.SaveLevel(currentLevel);
             gameUI.SetStatusMenuWin(true);
         }
+    }
+
+    IEnumerator WaitForRemoving()
+    {
+        yield return new WaitUntil(() => isRemoveMatching = true);
     }
 
     private IEnumerator WaitForUpdatePosTile(List<GameObject> listDestroy)
@@ -233,6 +207,42 @@ public class GameManager : MonoBehaviour
             gameUI.SetTimeCountDown(minutes, seconds);
         }
 
+    }
+
+    public void OnButtonBackTile()
+    {
+        if (isPaused) { return; }
+
+        AudioManager.Instance.PlaySFX("PushButton");
+
+        if (currentTile != null)
+        {
+            Tile tile = currentTile.GetComponent<Tile>();
+            tile.MoveToBack();
+            containerTile.Remove(currentTile);
+            tilesManager.AddTileBackTileManager(currentTile);
+
+            UpdatePosTiles(0, containerTile.Count - 1);
+            tableCountType[currentTile.tag]--;
+        }
+
+        if (containerTile.Count > 0)
+        {
+            currentTile = containerTile[0];
+        }
+        else
+        {
+            currentTile = null;
+        }
+    }
+
+    public void OnButtonHint()
+    {
+        var maxKeyValue = tableCountType.Aggregate((x, y) => x.Value > y.Value ? x : y);
+        string keyOfMaxValue = maxKeyValue.Key;
+        int maxValue = maxKeyValue.Value;
+
+        tilesManager.FindHint(keyOfMaxValue, 3 - maxValue);
     }
 
     public void OnPauseButtonClicked()
