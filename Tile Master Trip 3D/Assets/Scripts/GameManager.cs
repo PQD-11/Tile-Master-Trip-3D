@@ -218,7 +218,7 @@ public class GameManager : MonoBehaviour
 
     public void OnButtonBackTile()
     {
-        if (isPaused || isClosed) { return; }
+        if (isPaused) { return; }
 
         AudioManager.Instance.PlaySFX("PushButton");
 
